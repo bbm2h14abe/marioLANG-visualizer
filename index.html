@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        jQuery(function(){
+            jQuery(".fold-menu-button").on("click", function(){
+                jQuery(".fold-menu").css("opacity", "1");
+                jQuery(".fold-item").toggleClass("unfold");
+            })
+        });
+
+        // Variables.
+        var src = "\n\n\n  +:!  >\n====#  \"===\n\n\n    >  !>(++: <\n    \"==#=======";//@Bug if no beginning linebreaks
+        var canvas = null;
+        var context = null;
+        var img_mario = null;
+        var cell_size = 30;
+        var horizontal_cells = 10;
+        var vertical_cells = 5;
+        var grid_width = 1400;
+        var grid_height = 600;
+        var grid_padding = 0;
+        var mario_x = 0;
+        var mario_y = 0;
+        var mario_state = "walk_right";
+        var last_mario_state = mario_state;
+        var start_line = 0;
+
+        var memory_total_registers = 50;
+        var memory_ptr = memory_total_registers / 2;
+        var memory = new Array(memory_total_registers).fill(0);
+
+        function get_start_line(){
+            
+            var lines = src.split('\n');
+
+            for(var i=0; i<lines.length; i++){ 
+                switch(lines[i].charAt(0)){
+                    case '=':
+                    case '|':
+                    case '#':
+                        return i-2;
+                    break;
+                    case '':
+                    break;
+                    default:
+                        return i- 1;
+                }
+            }
+        }
+
+        function step(is_initialized){
+            var lines = src.split('\n');
+            
+            if(!is_initialized){
+                switch(mario_state){
+                    case "walk_right":
+                        mario_x += 1;
+                    break;
+                    case "walk_left":
+                        mario_x -= 1;
+                    break;
+                    case "jump":
+                    case "elevator_up":
+                        mario_y -= 1;
+                    break;
+                    case "fall":
+                    case "elevator_down":
+                        mario_y += 1;
+                    break;
+                    default:
+                        console.log("Unknown mario-state: " + token);
+                }
+            }
+            var token = lines[mario_y+1][mario_x];
+            console.log("token: " + token);
+            
+            if(mario_state == "jump"){
+                mario_state = last_mario_state;
+            }
+
+            switch(token){
+                case '+':
+                    console.log("Current token: +");
+                    memory[memory_ptr] += 1;
+                break;
+                case '-':
+                    console.log("Current token: -");
+                    memory[memory_ptr] -= 1;
+                break;
+                case ':':
+                    var output_box = jQuery(".mlg-output");
+                    output_box.val(output_box.val() + ' ' + memory[memory_ptr]);
+                break;
+                case '^':
+                    mario_state = "jump";
+                break;
+                case '>': 
+                    mario_state = "walk_right";
+                break;
+                case '<':
+                    mario_state = "walk_left";
+                break;
+                case ')': 
+                    memory_ptr++;
+                break;
+                case '(':
+                    memory_ptr--;
+                break;
+                case '!':
+                    mario_state = "stop";
+                break;
+                case '"':
+                    if(mario_state =="elevator_up"){
+                        last_mario_state = "stop";
+                        mario_state = "jump";
+                    }
+                break;
+                default:
+                    console.log("Unknown token: " + token);
+            }
+
+            // Check if standing on ground or falling.
+            var lower_token = lines[mario_y + 2][mario_x];
+            if(mario_state != "elevator_up" && mario_state != "elevator_down" && token != "<" && token != ">" && mario_state != "jump" && lower_token != '"' && lower_token != '=' && lower_token != '#' && lower_token != '|'){
+                if(mario_state != "fall"){
+                    last_mario_state = mario_state;
+                }
+                mario_state = "fall";
+            }else if(mario_state ==  "fall"){
+                mario_state = last_mario_state;
+            }
+
+            // Check for elevator ride.
+            if(lower_token == '#'){
+                var found_destination = false;
+                for(var iy=mario_y; iy>=0; iy--){
+                    console.log("src:" + lines[iy][mario_x])
+                    var tmp_token = lines[iy][mario_x];
+                    if(tmp_token == '=' || tmp_token == '|' || tmp_token == '#'){ // @ Todo Write is_solid(token) function.
+                        break;
+                    }
+                    if(tmp_token == '"'){
+                        found_destination = true;
+                        console.log("found");
+                        break;
+                    }
+                }
+                if(found_destination){
+                    mario_state = "elevator_up";
+                }else{
+                    mario_state = "elevator_down";
+                }
+            }
+
+            draw();
+        }
+
+        function draw(){
+            // Clear.
+            context.fillStyle = "#F9F9F9";
+            context.fillRect(0,0, 1400,600);
+
+            // Draw grid.
+            for (var x = 0; x <= grid_width; x += cell_size) {
+                context.moveTo(0.5 + x + grid_padding, grid_padding);
+                context.lineTo(0.5 + x + grid_padding, grid_height + grid_padding);
+            }
+            for (var x = 0; x <= grid_height; x += cell_size) {
+                context.moveTo(grid_padding, 0.5 + x + grid_padding);
+                context.lineTo(grid_width + grid_padding, 0.5 + x + grid_padding);
+            }
+            context.strokeStyle = "black";
+            context.stroke();
+
+            // Draw tokens.
+            context.font = "30px Consolas";
+            context.fillStyle = "red";
+            var lines = src.split('\n');
+            for(var iy=0; iy<lines.length; iy++){
+                for(var ix=0; ix<lines[iy].length; ix++){
+                    context.fillText(lines[iy][ix], ix * cell_size + 8, iy * cell_size-4);
+                }
+            }
+
+            // Draw mario.
+            context.drawImage(img_mario, mario_x * cell_size, mario_y * cell_size, cell_size, cell_size);
+        }
+
+        function init(){
+            // Set up the canvas.
+            canvas = jQuery(".mlg-canvas");
+            context = canvas[0].getContext("2d");
+            context.fillStyle = "#F9F9F9";
+            context.fillRect(0,0, 600,270);
+            
+            // Get images.
+            img_mario = jQuery("#img-mario")[0];
+
+            start_line = get_start_line();
+            mario_y = start_line;
+            step(true);
+        }
+
+        jQuery(function(){
+            init();
+
+            jQuery(".step").on("click", function(){
+                step(false);
+            });
+
+            jQuery(".compile").on("click",function(){
+                src = jQuery(".mlg-source").val();
+                init();
+            });
+        });
+
+    </script>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>marioLANG visualiser</h1>
+        </header>
+        <section>
+            <h2>Feedback</h2>
+            <p>Please leave your feedback!</p>
+            <form>
+                <input type="text">
+                <input type="checkbox" value="hi">
+                <textarea></textarea>
+                <select>
+                    <option>Option A</option>
+                    <option>Option B</option>
+                    <option>Option C</option>
+                </select>
+                <input type="button" value="Menu" class="fold-menu-button round-button">
+                <div class="fold-menu">
+                    <div class="fold-item">Item A</div>
+                    <div class="fold-item">Item B</div>
+                    <div class="fold-item">Item C</div>
+                    <script>
+                        jQuery(".fold-menu").css("opacity", "0");
+                    </script>
+                </div>
+                <input type="submit" value="Submit" disabled>
+            </form> 
+        </section>  
+        <section>
+            <h2>Mlg Canvas</h2>
+            <textarea class="mlg-source" oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea>
+            <input type="button" value="Compile" class="compile">
+            <div class="mlg-canvas-wrapper">
+                <canvas class="mlg-canvas" width="1400" height="600"></canvas>
+            </div>
+            <input type="button" value="Step" class="step">
+            <input type="text" class="mlg-output" readonly> 
+            <img id="img-mario" width="128" height="128" src="img/super-paper-mario.png" style="display: none;">
+        </section>    
+    </div>
+</body>
+</html>

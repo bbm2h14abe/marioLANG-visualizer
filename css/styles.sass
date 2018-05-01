@@ -1,0 +1,202 @@
+*
+    padding: 0
+    margin: 0
+
+html
+    box-sizing: border-box
+
+ul, ol
+    list-style-type: none
+
+// Font sizes.
+$font-size-xs: 0.5em
+$font-size-s: 0.8em
+$font-size-m: 1.1em
+$font-size-l: 1.5em
+
+// Fonts.
+$font-primary: 'Roboto', sans-serif
+$font-secondary: 'Oswald', sans-serif
+
+// Colors.
+$color-primary: #e53935
+$color-primary-light: #ff6f60
+$color-primary-dark: #ab000d
+$color-secondary: #0d47a1
+$color-secondary-light: #5472d3
+$color-secondary-dark: #002171
+
+// Shadow.
+=box-shadow($depth)
+    box-shadow: 0 $depth 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08)  
+=box-shadow-transition
+    transition: box-shadow 200ms cubic-bezier(0.4, 0.0, 0.2, 1)
+
+// Base styling for all elements.
+=apply-material-design
+    font-family: $font-primary
+    font-size: $font-size-m
+    border: none
+    vertical-align: top
+    border-radius: 2px
+    +box-shadow(3px)
+    +box-shadow-transition
+
+h1,h2,h3,h4,h5,h6
+    font-family: $font-secondary
+    text-align: center
+body
+    background-color: $color-primary-dark
+.page
+    width: calc(100vw - 0.3em)
+    height: 400px
+    margin: 0 auto 0
+    background-color: $color-primary-dark
+    +apply-material-design
+
+// Remove default to add custom styles.
+input[type=radio], input[type=checkbox]
+    appearance: none
+    -moz-appearance: none
+    -webkit-appearance: none 
+    width: 20px
+    height: 20px
+    background-color: white
+    &:checked:after
+        font-size: $font-size-s
+        content: '\274C'
+
+input[type=submit], input[type=button]
+    padding: 0.2em 0.8em
+    background-color: $color-secondary
+    border-radius: 3px
+
+input[type=button].round-button
+    padding: 0
+    width: 3em
+    height: 3em
+    border-radius: 3em
+
+form, input, select, textarea
+    +apply-material-design
+    margin: 0.3em
+
+input, select, textarea
+    font-family: monospace
+    outline: none
+    &:focus, &:checked 
+        +box-shadow(6px)
+        transform: scaleY(1.05)  
+    &:hover:not(:focus):not(:checked)
+        +box-shadow(1px)
+
+textarea, input[type=text]
+    resize: none
+    padding: 0.3em
+    margin: 0
+    width: 100%
+
+section
+    padding: 0.5em 
+    background-color: $color-primary
+ 
+section > form, section > div
+    background-color: $color-primary-light 
+
+.mlg-canvas-wrapper
+    overflow: scroll
+
+// Unfolding dropdown menu.
+.fold-item
+    box-sizing: border-box
+    width: 6em
+    height: 2em
+    border: 1px solid $color-secondary
+    border-top: 0
+    border-radius: 3px
+    background-color: $color-primary
+    font-size: $font-size-s
+    overflow: hidden
+    text-align: center
+    +box-shadow(3px)
+    +box-shadow-transition 
+    &:hover
+        font-weight: bold
+        cursor: pointer
+
+.unfold.fold-item
+    visibility: hidden
+    
+.unfold.fold-item:nth-child(1) 
+    animation: unfold-right 0.2s
+    animation-fill-mode: forwards
+
+.unfold.fold-item:nth-child(2)
+    animation: unfold-left 0.2s
+    animation-fill-mode: forwards
+    animation-delay: 0.2s
+
+.unfold.fold-item:nth-child(3) 
+    animation: unfold-right 0.2s
+    animation-fill-mode: forwards
+    animation-delay: 0.4s
+
+.fold-item:nth-child(1)
+    transform-origin: left top
+    transform: skewX(10deg) scaleY(1.0)
+    animation: fold-right 0.2s
+    animation-fill-mode: forwards
+    animation-delay: 0.4s
+
+.fold-item:nth-child(2)
+    transform-origin: left top
+    transform: skewX(-10deg) scaleY(1.0) translate(5px)
+    animation: fold-left 0.2s
+    animation-fill-mode: forwards
+    animation-delay: 0.2s
+
+.fold-item:nth-child(3) 
+    transform-origin: left top
+    transform: skewX(10deg) scaleY(1.0)
+    animation: fold-right 0.2s
+    animation-fill-mode: forwards
+
+@keyframes unfold-right
+    from
+        transform-origin: left top
+        transform: skewX(90deg) scaleY(0)
+    to
+        transform-origin: left top
+        transform: skewX(10deg) scaleY(1.0)
+        visibility: visible
+
+@keyframes unfold-left
+    from
+        transform-origin: left top
+        transform: skewX(-90deg) scaleY(0) translate(5px)
+
+    to
+        transform-origin: left top
+        transform: skewX(-10deg) scaleY(1.0) translate(5px)
+        visibility: visible
+
+@keyframes fold-right
+    from
+        transform-origin: left top
+        transform: skewX(10deg) scaleY(1.0)
+        visibility: visible
+    to
+        transform-origin: left top
+        transform: skewX(90deg) scaleY(0)
+        visibility: hidden
+
+
+@keyframes fold-left
+    from
+        transform-origin: left top
+        transform: skewX(-10deg) scaleY(1.0) translate(5px)
+        visibility: visible
+    to
+        transform-origin: left top
+        transform: skewX(-90deg) scaleY(0) translate(5px)
+        visibility: hidden
