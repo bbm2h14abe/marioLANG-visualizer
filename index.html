@@ -42,6 +42,7 @@
             
             var lines = src.split('\n');
 
+            // Find a starting position that is neither a solid block nor in the air.
             for(var i=0; i<lines.length; i++){ 
                 switch(lines[i].charAt(0)){
                     case '=':
@@ -58,8 +59,11 @@
         }
 
         function step(is_initialized){
+
+            // Split the source into seperate lines.
             var lines = src.split('\n');
             
+            // Update mario based on his state.
             if(!is_initialized){
                 switch(mario_state){
                     case "walk_right":
@@ -80,20 +84,22 @@
                         console.log("Unknown mario-state: " + token);
                 }
             }
+
+            // Get current token.
             var token = lines[mario_y+1][mario_x];
             console.log("token: " + token);
             
+            // @ Todo Check if this line is necessary.
             if(mario_state == "jump"){
                 mario_state = last_mario_state;
             }
 
+            // Check the current token mario stands on.
             switch(token){
                 case '+':
-                    console.log("Current token: +");
                     memory[memory_ptr] += 1;
                 break;
                 case '-':
-                    console.log("Current token: -");
                     memory[memory_ptr] -= 1;
                 break;
                 case ':':
@@ -205,18 +211,28 @@
             // Get images.
             img_mario = jQuery("#img-mario")[0];
 
+            // Reset mario.
             start_line = get_start_line();
+            mario_x = 0;
             mario_y = start_line;
+            
+            // Clear the output field.
+            jQuery(".mlg-output").val("");
+
+            // First, initializing step.
             step(true);
         }
 
         jQuery(function(){
+            // Initialize.
             init();
 
+            // Take a step.
             jQuery(".step").on("click", function(){
                 step(false);
             });
-
+            
+            // Apply the source-code to the visualizer (canvas).
             jQuery(".compile").on("click",function(){
                 src = jQuery(".mlg-source").val();
                 init();
